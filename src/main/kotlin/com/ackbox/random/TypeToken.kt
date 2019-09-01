@@ -9,13 +9,6 @@ import kotlin.reflect.full.cast
 import kotlin.reflect.full.isSubclassOf
 import kotlin.reflect.full.primaryConstructor
 
-/**
- * Requirements:
- * - Object has a primary constructor. All data classes have one.
- * - Object is composed of the following types:
- * - Composite objects are supported as long as they also meet the requirements above.
- * - There is no support for nested arrays.
- */
 @Suppress("UNCHECKED_CAST")
 sealed class TypeToken() {
 
