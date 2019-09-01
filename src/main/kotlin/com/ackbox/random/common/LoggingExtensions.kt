@@ -1,4 +1,4 @@
-package com.ackbox.random
+package com.ackbox.random.common
 
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory

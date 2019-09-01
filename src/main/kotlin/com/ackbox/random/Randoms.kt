@@ -13,8 +13,6 @@ object Randoms {
 
     fun char(): Char = positiveIntegerInRange(CHAR_ASCII_START, CHAR_ASCII_END + 1).toChar()
 
-    fun string(): String = string(STRING_LENGTH)
-
     fun boolean(): Boolean = Random.nextBoolean()
 
     fun positiveByte(): Byte = Random.nextInt(0, Byte.MAX_VALUE.toInt()).toByte()
@@ -32,6 +30,8 @@ object Randoms {
     fun byteBuffer(): ByteBuffer = ByteBuffer.wrap(string().toByteArray(StandardCharsets.UTF_8))
 
     fun byteArray(): ByteArray = byteArray(STRING_LENGTH)
+
+    fun string(): String = string(STRING_LENGTH)
 
     fun string(length: Int): String {
         return (1 until length).map { char() }.joinToString(separator = "") { "$it" }

@@ -1,4 +1,4 @@
-package com.ackbox.random
+package com.ackbox.random.common
 
 import java.lang.reflect.*
 import kotlin.reflect.KClass
