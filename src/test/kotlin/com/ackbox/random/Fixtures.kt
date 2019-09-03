@@ -219,3 +219,12 @@ sealed class NestedStringArray {
 
     data class Object(val value: Array<Array<String>>) : NestedStringArray()
 }
+
+open class Level0Object(val property01: String, val property02: Int)
+
+class Level1Object(
+    property01: String,
+    property02: Int,
+    val property11: String,
+    val property12: Int
+) : Level0Object(property01, property02)
