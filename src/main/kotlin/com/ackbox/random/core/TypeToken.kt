@@ -2,6 +2,9 @@ package com.ackbox.random.core
 
 import com.ackbox.random.TypeFactory
 import java.nio.ByteBuffer
+import java.time.Instant
+import java.time.LocalDate
+import java.time.LocalDateTime
 import kotlin.reflect.KClass
 import kotlin.reflect.KParameter
 import kotlin.reflect.KType
@@ -45,7 +48,7 @@ sealed class TypeToken(val type: KType) {
                 typeToken is ArrayType -> elements.map { it as Array<*> }.toTypedArray()
                 typeToken is ListType -> elements.map { it as List<*> }.toTypedArray()
                 typeToken is MapType -> elements.map { it as Map<*, *> }.toTypedArray()
-                else -> elements.map { typeToken.clazz.cast(it)  }.toTypedArray()
+                else -> elements.map { typeToken.clazz.cast(it) }.toTypedArray()
             }
         }
     }
@@ -88,6 +91,9 @@ sealed class TypeToken(val type: KType) {
                 clazz == String::class -> LeafType(type) { Randoms.string() }
                 clazz == ByteBuffer::class -> LeafType(type) { Randoms.byteBuffer() }
                 clazz == ByteArray::class -> LeafType(type) { Randoms.byteArray() }
+                clazz == Instant::class -> LeafType(type) { Instant.now() }
+                clazz == LocalDate::class -> LeafType(type) { LocalDate.now() }
+                clazz == LocalDateTime::class -> LeafType(type) { LocalDateTime.now() }
                 clazz.java.isArray -> ArrayType(type)
                 clazz.java.isEnum -> EnumType(type)
                 clazz.isSubclassOf(Collection::class) || clazz.isSubclassOf(List::class) -> ListType(type)

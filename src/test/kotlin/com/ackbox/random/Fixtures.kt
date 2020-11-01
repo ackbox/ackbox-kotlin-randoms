@@ -2,6 +2,8 @@ package com.ackbox.random
 
 import java.nio.ByteBuffer
 import java.time.Instant
+import java.time.LocalDate
+import java.time.LocalDateTime
 
 sealed class CharHolder {
     data class Data(val value: Char) : CharHolder()
@@ -169,6 +171,9 @@ sealed class Nested {
         val stringValue: String,
         val byteBufferValue: ByteBuffer,
         val byteArrayValue: ByteArray,
+        val instantValue: Instant,
+        val dateTimeValue: LocalDateTime,
+        val dateValue: LocalDate,
         val arrayString: Array<String>,
         val collectionIntValue: Collection<Int>,
         val listIntValue: List<Int>,
@@ -189,6 +194,9 @@ sealed class Nested {
         val stringValue: String,
         val byteBufferValue: ByteBuffer,
         val byteArrayValue: ByteArray,
+        val instantValue: Instant,
+        val dateTimeValue: LocalDateTime,
+        val dateValue: LocalDate,
         val arrayString: Array<String>,
         val collectionIntValue: Collection<Int>,
         val listIntValue: List<Int>,
