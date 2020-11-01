@@ -31,23 +31,12 @@ class KRandom<T : Any>(private val type: KType, private val config: KRandomConfi
     private fun generateValue(typeToken: TypeToken): Any? {
         LOG.trace("Generating value for type [$typeToken]")
         return when (typeToken) {
-            is CharType -> Randoms.char()
-            is BooleanType -> Randoms.boolean()
-            is ByteType -> Randoms.positiveByte()
-            is ShortType -> Randoms.positiveShort()
-            is IntType -> Randoms.positiveInteger()
-            is LongType -> Randoms.positiveLong()
-            is FloatType -> Randoms.positiveFloat()
-            is DoubleType -> Randoms.positiveDouble()
-            is StringType -> Randoms.string(computeSize())
-            is ByteBufferType -> Randoms.byteBuffer()
-            is ByteArrayType -> Randoms.byteArray()
-            is EnumType -> Randoms.enumValue(typeToken.clazz)
+            is LeafType -> typeToken.newInstance()
+            is EnumType -> Randoms.enumValue(typeToken.enumClazz)
             is ArrayType -> generateArray(typeToken)
             is ListType -> generateList(typeToken)
             is MapType -> generateMap(typeToken)
             is ObjectType -> generateInstance(typeToken.type)
-            is FactoryGeneratedType -> typeToken.newInstance()
         }
     }
 
@@ -97,7 +86,7 @@ class KRandom<T : Any>(private val type: KType, private val config: KRandomConfi
 
     private fun getTypeToken(type: KType): TypeToken {
         val factory = config.typeFactories[type.classifier as KClass<*>]
-        return factory?.let { FactoryGeneratedType(type, it) } ?: TypeToken.valueOf(type)
+        return factory?.let { LeafType(type, it) } ?: TypeToken.valueOf(type)
     }
 
     companion object {
