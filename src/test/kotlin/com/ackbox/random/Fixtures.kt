@@ -1,6 +1,7 @@
 package com.ackbox.random
 
 import java.nio.ByteBuffer
+import java.time.Instant
 
 sealed class CharHolder {
     data class Data(val value: Char) : CharHolder()
@@ -228,3 +229,10 @@ class Level1Object(
     val property11: String,
     val property12: Int
 ) : Level0Object(property01, property02)
+
+data class FactoryObject(
+    val stringValue: String,
+    val intValue: Int,
+    val enumValue: EnumOptions,
+    val anyValue: Any
+)

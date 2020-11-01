@@ -1,26 +1,13 @@
-package com.ackbox.random
+package com.ackbox.random.core
 
-import com.ackbox.random.TypeToken.ArrayType
-import com.ackbox.random.TypeToken.BooleanType
-import com.ackbox.random.TypeToken.ByteArrayType
-import com.ackbox.random.TypeToken.ByteBufferType
-import com.ackbox.random.TypeToken.ByteType
-import com.ackbox.random.TypeToken.CharType
-import com.ackbox.random.TypeToken.DoubleType
-import com.ackbox.random.TypeToken.EnumType
-import com.ackbox.random.TypeToken.FloatType
-import com.ackbox.random.TypeToken.IntType
-import com.ackbox.random.TypeToken.ListType
-import com.ackbox.random.TypeToken.LongType
-import com.ackbox.random.TypeToken.MapType
-import com.ackbox.random.TypeToken.ObjectType
-import com.ackbox.random.TypeToken.ShortType
-import com.ackbox.random.TypeToken.StringType
+import com.ackbox.random.KRandomConfig
 import com.ackbox.random.common.getKType
 import com.ackbox.random.common.logger
+import com.ackbox.random.core.TypeToken.*
 import kotlin.reflect.KClass
 import kotlin.reflect.KType
 import kotlin.reflect.KTypeParameter
+
 
 @Suppress("UNCHECKED_CAST")
 class KRandom<T : Any>(private val type: KType, private val config: KRandomConfig) {
@@ -41,7 +28,7 @@ class KRandom<T : Any>(private val type: KType, private val config: KRandomConfi
         return token.newInstance(args) as T
     }
 
-    private fun generateValue(typeToken: TypeToken): Any {
+    private fun generateValue(typeToken: TypeToken): Any? {
         LOG.trace("Generating value for type [$typeToken]")
         return when (typeToken) {
             is CharType -> Randoms.char()
@@ -52,7 +39,7 @@ class KRandom<T : Any>(private val type: KType, private val config: KRandomConfi
             is LongType -> Randoms.positiveLong()
             is FloatType -> Randoms.positiveFloat()
             is DoubleType -> Randoms.positiveDouble()
-            is StringType -> Randoms.string(Randoms.positiveIntegerInRange(config.stringSizesBounds.first, config.stringSizesBounds.second))
+            is StringType -> Randoms.string(computeSize())
             is ByteBufferType -> Randoms.byteBuffer()
             is ByteArrayType -> Randoms.byteArray()
             is EnumType -> Randoms.enumValue(typeToken.clazz)
@@ -60,6 +47,7 @@ class KRandom<T : Any>(private val type: KType, private val config: KRandomConfi
             is ListType -> generateList(typeToken)
             is MapType -> generateMap(typeToken)
             is ObjectType -> generateInstance(typeToken.type)
+            is FactoryGeneratedType -> typeToken.newInstance()
         }
     }
 
@@ -76,8 +64,8 @@ class KRandom<T : Any>(private val type: KType, private val config: KRandomConfi
         LOG.trace("Generating map values for class [$keyType::$valueType]")
         val entries = (0 until size).map {
             generateInstanceForParameter(keyType, token.type) to generateInstanceForParameter(valueType, token.type)
-        }
-        return token.newInstance(entries)
+        }.filterNot { it.first == null }
+        return token.newInstance(entries as Collection<Pair<Any, Any?>>)
     }
 
     private fun generateArray(token: ArrayType): Any {
@@ -87,7 +75,7 @@ class KRandom<T : Any>(private val type: KType, private val config: KRandomConfi
         return token.newInstance((0 until size).map { generateInstanceForParameter(elementType, token.type) })
     }
 
-    private fun generateInstanceForParameter(paramType: KType, type: KType): Any {
+    private fun generateInstanceForParameter(paramType: KType, type: KType): Any? {
         return when (val classifier = paramType.classifier) {
             is KClass<*> -> generateValue(getTypeToken(paramType))
             is KTypeParameter -> {
@@ -102,24 +90,18 @@ class KRandom<T : Any>(private val type: KType, private val config: KRandomConfi
         }
     }
 
-    private fun computeSize() = Randoms.positiveIntegerInRange(
+    private fun computeSize(): Int = Randoms.positiveIntegerInRange(
         config.collectionSizeBounds.first,
         config.collectionSizeBounds.second
     )
 
-    private fun getTypeToken(type: KType): TypeToken = TypeToken.valueOf(type)
+    private fun getTypeToken(type: KType): TypeToken {
+        val factory = config.typeFactories[type.classifier as KClass<*>]
+        return factory?.let { FactoryGeneratedType(type, it) } ?: TypeToken.valueOf(type)
+    }
 
     companion object {
 
         private val LOG = logger()
     }
 }
-
-inline fun <reified T : Any> krandom(config: KRandomConfig = KRandomConfig()): T {
-    return KRandom<T>(getKType<T>(), config).next()
-}
-
-data class KRandomConfig(
-    var collectionSizeBounds: Pair<Int, Int> = 1 to 15,
-    var stringSizesBounds: Pair<Int, Int> = 10 to 50
-)

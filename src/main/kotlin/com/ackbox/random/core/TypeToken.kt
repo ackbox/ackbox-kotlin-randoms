@@ -1,8 +1,8 @@
-package com.ackbox.random
+package com.ackbox.random.core
 
+import com.ackbox.random.TypeFactory
 import java.nio.ByteBuffer
 import kotlin.reflect.KClass
-import kotlin.reflect.KFunction
 import kotlin.reflect.KParameter
 import kotlin.reflect.KType
 import kotlin.reflect.full.cast
@@ -10,7 +10,7 @@ import kotlin.reflect.full.isSubclassOf
 import kotlin.reflect.full.primaryConstructor
 
 @Suppress("UNCHECKED_CAST")
-sealed class TypeToken() {
+sealed class TypeToken {
 
     override fun toString(): String = this::class.simpleName!!
 
@@ -36,18 +36,14 @@ sealed class TypeToken() {
 
     object ByteArrayType : TypeToken()
 
-    class EnumType(val clazz: Class<out EnumType>) : TypeToken() {
-
-        fun cast(obj: Any?): EnumType = clazz.cast(obj)!!
-    }
+    class EnumType(val clazz: Class<out EnumType>) : TypeToken()
 
     class ArrayType(val type: KType) : TypeToken() {
 
         val elementType: KType = type.arguments.first().type!!
 
         fun newInstance(elements: Collection<Any?>): Any {
-            val typeToken = valueOf(elementType)
-            return when (typeToken) {
+            return when (val typeToken = valueOf(elementType)) {
                 is CharType -> elements.map { it as Char }.toCharArray()
                 is BooleanType -> elements.map { it as Boolean }.toBooleanArray()
                 is ByteType -> elements.map { it as Byte }.toByteArray()
@@ -59,11 +55,12 @@ sealed class TypeToken() {
                 is StringType -> elements.map { it as String }.toTypedArray()
                 is ByteBufferType -> elements.map { it as ByteBuffer }.toTypedArray()
                 is ByteArrayType -> elements.map { it as ByteArray }.toTypedArray()
-                is EnumType -> elements.map { typeToken.cast(it) }.toTypedArray()
+                is EnumType -> elements.map { typeToken.clazz.cast(it) }.toTypedArray()
                 is ArrayType -> elements.map { it as Array<*> }.toTypedArray()
                 is ListType -> elements.map { it as List<*> }.toTypedArray()
                 is MapType -> elements.map { it as Map<*, *> }.toTypedArray()
-                is ObjectType -> elements.map { typeToken.cast(it) }.toTypedArray()
+                is ObjectType -> elements.map { typeToken.clazz.cast(it) }.toTypedArray()
+                is FactoryGeneratedType -> elements.map { typeToken.clazz.cast(it) }.toTypedArray()
             }
         }
     }
@@ -85,13 +82,17 @@ sealed class TypeToken() {
 
     class ObjectType(val type: KType) : TypeToken() {
 
-        private val clazz: KClass<*> = type.classifier as KClass<*>
-        private val primaryConstructor: KFunction<Any> = clazz.primaryConstructor!!
-        val constructorArguments: List<KParameter> = primaryConstructor.parameters
+        val clazz: KClass<*> = type.classifier as KClass<*>
+        val constructorArguments: List<KParameter> = clazz.primaryConstructor!!.parameters
 
-        fun newInstance(args: Map<KParameter, Any?>): Any = primaryConstructor.callBy(args)
+        fun newInstance(args: Map<KParameter, Any?>): Any = clazz.primaryConstructor!!.callBy(args)
+    }
 
-        fun cast(obj: Any?): Any = clazz.cast(obj)
+    data class FactoryGeneratedType(val type: KType, val function: TypeFactory<*>) : TypeToken() {
+
+        val clazz: KClass<*> = type.classifier as KClass<*>
+
+        fun newInstance(): Any? = function.invoke()
     }
 
     companion object {

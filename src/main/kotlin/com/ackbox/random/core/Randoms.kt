@@ -1,10 +1,10 @@
-package com.ackbox.random
+package com.ackbox.random.core
 
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
 import kotlin.random.Random
 
-object Randoms {
+internal object Randoms {
 
     private const val CHAR_ASCII_START = 97
     private const val CHAR_ASCII_END = 122
