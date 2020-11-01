@@ -176,7 +176,7 @@ sealed class Nested {
         val nested: StringHolder.Data
     ) : Nested()
 
-    data class Object(
+    class Object(
         val charValue: Char,
         val booleanValue: Boolean,
         val byteValue: Byte,
@@ -203,21 +203,21 @@ sealed class NestedStringList {
 
     data class Data(val value: List<List<String>>) : NestedStringList()
 
-    data class Object(val value: List<List<String>>) : NestedStringList()
+    class Object(val value: List<List<String>>) : NestedStringList()
 }
 
 sealed class NestedStringIntMap {
 
     data class Data(val value: Map<String, List<Int>>) : NestedStringIntMap()
 
-    data class Object(val value: Map<String, List<Int>>) : NestedStringIntMap()
+    class Object(val value: Map<String, List<Int>>) : NestedStringIntMap()
 }
 
 sealed class NestedStringArray {
 
     data class Data(val value: Array<Array<String>>) : NestedStringArray()
 
-    data class Object(val value: Array<Array<String>>) : NestedStringArray()
+    class Object(val value: Array<Array<String>>) : NestedStringArray()
 }
 
 open class Level0Object(val property01: String, val property02: Int)
